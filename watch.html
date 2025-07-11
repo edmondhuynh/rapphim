@@ -1,0 +1,91 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Xem Phim</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <meta name="description" content="Xem phim và clip miễn phí">
+  <meta name="keywords" content="phim, clip, xem phim miễn phí">
+</head>
+<body class="bg-gray-900 text-white">
+  <!-- Header -->
+  <header class="bg-gray-800 p-4 sticky top-0 z-10">
+    <div class="container mx-auto flex justify-between items-center">
+      <h1 class="text-2xl font-bold">Website Phim & Clip</h1>
+      <a href="index.html" class="text-blue-400 hover:underline">Quay lại Trang Chủ</a>
+    </div>
+  </header>
+
+  <!-- Video Player -->
+  <main class="container mx-auto p-4">
+    <h2 class="text-3xl font-semibold mb-4">Đang Xem Phim</h2>
+    <div id="videoPlayer" class="w-full" style="max-width: 800px; margin: 0 auto;">
+      <iframe
+        id="videoFrame"
+        class="w-full h-96"
+        frameborder="0"
+        allowfullscreen
+      ></iframe>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-gray-800 p-4 text-center">
+    <p>© 2025 Website Phim & Clip. All rights reserved.</p>
+  </footer>
+
+  <script>
+    // Get video URL from query parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const videoUrl = urlParams.get('video');
+
+    // Set iframe source to video URL
+    if (videoUrl) {
+      const videoFrame = document.getElementById('videoFrame');
+      videoFrame.src = videoUrl;
+    } else {
+      document.getElementById('videoPlayer').innerHTML = '<p class="text-red-400">Không tìm thấy video. Vui lòng quay lại trang chủ.</p>';
+    }
+  </script>
+</body>
+</html>
