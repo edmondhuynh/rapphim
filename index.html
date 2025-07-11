@@ -1,0 +1,252 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Website Phim & Clip</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <meta name="description" content="Website xem phim và clip miễn phí">
+  <meta name="keywords" content="phim, clip, xem phim miễn phí">
+</head>
+<body class="bg-gray-900 text-white">
+  <!-- Header -->
+  <header class="bg-gray-800 p-4 sticky top-0 z-10">
+    <div class="container mx-auto flex flex-col sm:flex-row justify-between items-center">
+      <h1 class="text-2xl font-bold mb-2 sm:mb-0">Website Phim & Clip</h1>
+      <div class="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4">
+        <input
+          type="text"
+          id="searchInput"
+          placeholder="Tìm kiếm phim..."
+          class="p-2 rounded text-black w-full sm:w-64"
+        >
+        <nav>
+          <ul class="flex space-x-4">
+            <li><button class="genre-filter text-blue-400 hover:underline" data-genre="all">Tất cả</button></li>
+            <li><button class="genre-filter text-blue-400 hover:underline" data-genre="Hành động">Hành động</button></li>
+            <li><button class="genre-filter text-blue-400 hover:underline" data-genre="Tình cảm">Tình cảm</button></li>
+            <li><button class="genre-filter text-blue-400 hover:underline" data-genre="Khoa học viễn tưởng">Khoa học viễn tưởng</button></li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- Banner -->
+  <section class="banner bg-cover bg-center h-64 flex items-center justify-center" style="background-image: url('https://via.placeholder.com/1200x300?text=Banner+Phim+Noi+Bat')">
+    <div class="text-center">
+      <h2 class="text-4xl font-bold">Khám Phá Phim Mới Nhất!</h2>
+      <p class="text-lg mt-2">Xem các bộ phim và clip hấp dẫn, hoàn toàn miễn phí.</p>
+    </div>
+  </section>
+
+  <!-- Main Content -->
+  <main class="container mx-auto p-4">
+    <h2 class="text-3xl font-semibold mb-4">Danh Sách Phim & Clip</h2>
+    <div id="movieGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+      <!-- Movie Cards (Sample Data) -->
+      <div class="movie-card bg-gray-800 p-4 rounded shadow" data-genre="Hành động">
+        <img src="https://via.placeholder.com/300x150?text=Phim+1" alt="Phim 1" class="w-full h-48 object-cover rounded">
+        <h3 class="text-xl font-semibold mt-2">Phim Hành Động 1</h3>
+        <p class="text-gray-400">Một bộ phim hành động gay cấn.</p>
+        <a href="https://www.youtube.com/embed/dQw4w9WgXcQ" target="_blank" class="text-blue-400 hover:underline">Xem Ngay</a>
+      </div>
+      <div class="movie-card bg-gray-800 p-4 rounded shadow" data-genre="Tình cảm">
+        <img src="https://via.placeholder.com/300x150?text=Phim+2" alt="Phim 2" class="w-full h-48 object-cover rounded">
+        <h3 class="text-xl font-semibold mt-2">Phim Tình Cảm 1</h3>
+        <p class="text-gray-400">Câu chuyện tình yêu cảm động.</p>
+        <a href="https://www.youtube.com/embed/dQw4w9WgXcQ" target="_blank" class="text-blue-400 hover:underline">Xem Ngay</a>
+      </div>
+      <div class="movie-card bg-gray-800 p-4 rounded shadow" data-genre="Khoa học viễn tưởng">
+        <img src="https://via.placeholder.com/300x150?text=Phim+3" alt="Phim 3" class="w-full h-48 object-cover rounded">
+        <h3 class="text-xl font-semibold mt-2">Phim Khoa Học Viễn Tưởng 1</h3>
+        <p class="text-gray-400">Hành trình khám phá vũ trụ.</p>
+        <a href="https://www.youtube.com/embed/dQw4w9WgXcQ" target="_blank" class="text-blue-400 hover:underline">Xem Ngay</a>
+      </div>
+      <div class="movie-card bg-gray-800 p-4 rounded shadow" data-genre="Hành động">
+        <img src="https://via.placeholder.com/300x150?text=Phim+4" alt="Phim 4" class="w-full h-48 object-cover rounded">
+        <h3 class="text-xl font-semibold mt-2">Phim Hành Động 2</h3>
+        <p class="text-gray-400">Cuộc chiến nghẹt thở.</p>
+        <a href="https://www.youtube.com/embed/dQw4w9WgXcQ" target="_blank" class="text-blue-400 hover:underline">Xem Ngay</a>
+      </div>
+      <div class="movie-card bg-gray-800 p-4 rounded shadow" data-genre="Tình cảm">
+        <img src="https://via.placeholder.com/300x150?text=Phim+5" alt="Phim 5" class="w-full h-48 object-cover rounded">
+        <h3 class="text-xl font-semibold mt-2">Phim Tình Cảm 2</h3>
+        <p class="text-gray-400">Một câu chuyện tình lãng mạn.</p>
+        <a href="https://www.youtube.com/embed/dQw4w9WgXcQ" target="_blank" class="text-blue-400 hover:underline">Xem Ngay</a>
+      </div>
+      <div class="movie-card bg-gray-800 p-4 rounded shadow" data-genre="Khoa học viễn tưởng">
+        <img src="https://via.placeholder.com/300x150?text=Phim+6" alt="Phim 6" class="w-full h-48 object-cover rounded">
+        <h3 class="text-xl font-semibold mt-2">Phim Khoa Học Viễn Tưởng 2</h3>
+        <p class="text-gray-400">Thám hiểm không gian đầy kịch tính.</p>
+        <a href="https://www.youtube.com/embed/dQw4w9WgXcQ" target="_blank" class="text-blue-400 hover:underline">Xem Ngay</a>
+      </div>
+      <div class="movie-card bg-gray-800 p-4 rounded shadow" data-genre="Hành động">
+        <img src="https://via.placeholder.com/300x150?text=Phim+7" alt="Phim 7" class="w-full h-48 object-cover rounded">
+        <h3 class="text-xl font-semibold mt-2">Phim Hành Động 3</h3>
+        <p class="text-gray-400">Trận chiến không khoan nhượng.</p>
+        <a href="https://www.youtube.com/embed/dQw4w9WgXcQ" target="_blank" class="text-blue-400 hover:underline">Xem Ngay</a>
+      </div>
+      <div class="movie-card bg-gray-800 p-4 rounded shadow" data-genre="Tình cảm">
+        <img src="https://via.placeholder.com/300x150?text=Phim+8" alt="Phim 8" class="w-full h-48 object-cover rounded">
+        <h3 class="text-xl font-semibold mt-2">Phim Tình Cảm 3</h3>
+        <p class="text-gray-400">Tình yêu vượt thời gian.</p>
+        <a href="https://www.youtube.com/embed/dQw4w9WgXcQ" target="_blank" class="text-blue-400 hover:underline">Xem Ngay</a>
+      </div>
+      <div class="movie-card bg-gray-800 p-4 rounded shadow" data-genre="Khoa học viễn tưởng">
+        <img src="https://via.placeholder.com/300x150?text=Phim+9" alt="Phim 9" class="w-full h-48 object-cover rounded">
+        <h3 class="text-xl font-semibold mt-2">Phim Khoa Học Viễn Tưởng 3</h3>
+        <p class="text-gray-400">Cuộc chiến giữa các vì sao.</p>
+        <a href="https://www.youtube.com/embed/dQw4w9WgXcQ" target="_blank" class="text-blue-400 hover:underline">Xem Ngay</a>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div class="flex justify-center mt-6 space-x-2">
+      <button id="prevPage" class="bg-blue-600 text-white px-4 py-2 rounded disabled:bg-gray-600" disabled>Trước</button>
+      <div id="pageNumbers" class="flex space-x-2"></div>
+      <button id="nextPage" class="bg-blue-600 text-white px-4 py-2 rounded">Sau</button>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-gray-800 p-4 text-center">
+    <p>© 2025 Website Phim & Clip. All rights reserved.</p>
+  </footer>
+
+  <script>
+    const searchInput = document.getElementById('searchInput');
+    const movieGrid = document.getElementById('movieGrid');
+    const movieCards = document.querySelectorAll('.movie-card');
+    const genreFilters = document.querySelectorAll('.genre-filter');
+    const prevPageBtn = document.getElementById('prevPage');
+    const nextPageBtn = document.getElementById('nextPage');
+    const pageNumbers = document.getElementById('pageNumbers');
+
+    let currentPage = 1;
+    const moviesPerPage = 6;
+    let filteredMovies = Array.from(movieCards);
+    let currentGenre = 'all';
+
+    // Search functionality
+    searchInput.addEventListener('input', (e) => {
+      const searchTerm = e.target.value.toLowerCase();
+      filterMovies(searchTerm, currentGenre);
+      updatePagination();
+    });
+
+    // Genre filter functionality
+    genreFilters.forEach(button => {
+      button.addEventListener('click', () => {
+        currentGenre = button.dataset.genre;
+        genreFilters.forEach(btn => btn.classList.remove('font-bold'));
+        button.classList.add('font-bold');
+        filterMovies(searchInput.value.toLowerCase(), currentGenre);
+        currentPage = 1;
+        updatePagination();
+      });
+    });
+
+    // Filter movies by search term and genre
+    function filterMovies(searchTerm, genre) {
+      filteredMovies = Array.from(movieCards).filter(card => {
+        const title = card.querySelector('h3').textContent.toLowerCase();
+        const cardGenre = card.dataset.genre;
+        const matchesSearch = title.includes(searchTerm);
+        const matchesGenre = genre === 'all' || cardGenre === genre;
+        return matchesSearch && matchesGenre;
+      });
+      displayMovies();
+    }
+
+    // Display movies for current page
+    function displayMovies() {
+      const start = (currentPage - 1) * moviesPerPage;
+      const end = start + moviesPerPage;
+      movieCards.forEach(card => (card.style.display = 'none'));
+      filteredMovies.slice(start, end).forEach(card => (card.style.display = 'block'));
+    }
+
+    // Update pagination buttons and numbers
+    function updatePagination() {
+      const totalPages = Math.ceil(filteredMovies.length / moviesPerPage);
+      prevPageBtn.disabled = currentPage === 1;
+      nextPageBtn.disabled = currentPage === totalPages || totalPages === 0;
+
+      pageNumbers.innerHTML = '';
+      for (let i = 1; i <= totalPages; i++) {
+        const pageBtn = document.createElement('button');
+        pageBtn.textContent = i;
+        pageBtn.className = `px-4 py-2 rounded ${i === currentPage ? 'bg-blue-600 text-white' : 'bg-gray-600 text-white'}`;
+        pageBtn.addEventListener('click', () => {
+          currentPage = i;
+          displayMovies();
+          updatePagination();
+        });
+        pageNumbers.appendChild(pageBtn);
+      }
+      displayMovies();
+    }
+
+    // Pagination button events
+    prevPageBtn.addEventListener('click', () => {
+      if (currentPage > 1) {
+        currentPage--;
+        displayMovies();
+        updatePagination();
+      }
+    });
+
+    nextPageBtn.addEventListener('click', () => {
+      const totalPages = Math.ceil(filteredMovies.length / moviesPerPage);
+      if (currentPage < totalPages) {
+        currentPage++;
+        displayMovies();
+        updatePagination();
+      }
+    });
+
+    // Initial setup
+    updatePagination();
+  </script>
+</body>
+</html>
